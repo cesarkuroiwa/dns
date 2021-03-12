@@ -7,6 +7,7 @@ import (
 	"math/big"
 	"strconv"
 
+	"github.com/cloudflare/circl/sign/ed448"
 	"golang.org/x/crypto/ed25519"
 )
 
@@ -67,6 +68,12 @@ func (r *DNSKEY) PrivateKeyString(p crypto.PrivateKey) string {
 			"PrivateKey: " + private + "\n"
 
 	case ed25519.PrivateKey:
+		private := toBase64(p.Seed())
+		return format +
+			"Algorithm: " + algorithm + "\n" +
+			"PrivateKey: " + private + "\n"
+
+	case ed448.PrivateKey:
 		private := toBase64(p.Seed())
 		return format +
 			"Algorithm: " + algorithm + "\n" +

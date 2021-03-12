@@ -8,6 +8,7 @@ import (
 	"crypto/rsa"
 	"math/big"
 
+	"github.com/cloudflare/circl/sign/ed448"
 	"golang.org/x/crypto/ed25519"
 )
 
@@ -37,6 +38,10 @@ func (k *DNSKEY) Generate(bits int) (crypto.PrivateKey, error) {
 		}
 	case ED25519:
 		if bits != 256 {
+			return nil, ErrKeySize
+		}
+	case ED448:
+		if bits != 456 {
 			return nil, ErrKeySize
 		}
 	default:
@@ -72,6 +77,13 @@ func (k *DNSKEY) Generate(bits int) (crypto.PrivateKey, error) {
 		}
 		k.setPublicKeyED25519(pub)
 		return priv, nil
+	case ED448:
+		pub, priv, err := ed448.GenerateKey(rand.Reader)
+		if err != nil {
+			return nil, err
+		}
+		k.setPublicKeyED448(pub)
+		return priv, nil
 	default:
 		return nil, ErrAlg
 	}
@@ -106,6 +118,15 @@ func (k *DNSKEY) setPublicKeyECDSA(_X, _Y *big.Int) bool {
 
 // Set the public key for Ed25519
 func (k *DNSKEY) setPublicKeyED25519(_K ed25519.PublicKey) bool {
+	if _K == nil {
+		return false
+	}
+	k.PublicKey = toBase64(_K)
+	return true
+}
+
+// Set the public key for Ed448
+func (k *DNSKEY) setPublicKeyED448(_K ed448.PublicKey) bool {
 	if _K == nil {
 		return false
 	}
